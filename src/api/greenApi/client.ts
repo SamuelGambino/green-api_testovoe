@@ -3,6 +3,7 @@ import type {
   DeleteNotificationResponse,
   GreenApiCredentials,
   InstanceType,
+  QrCodeResponse,
   ReceiveNotificationResponse,
   SendMessageResponse,
   StateInstanceResponse,
@@ -15,7 +16,7 @@ export function cleanInstanceId(id: string): string {
 export function detectInstanceType(id: string, preferred?: InstanceType): InstanceType {
   if (/^tg/i.test(id)) return 'tgInstance'
   if (/^wa/i.test(id)) return 'waInstance'
-  return preferred || 'waInstance'
+  return preferred || 'tgInstance'
 }
 
 export function formatChatId(input: string): string {
@@ -36,17 +37,21 @@ export function formatChatId(input: string): string {
   return trimmed
 }
 
+/**
+ * Builds the GREEN-API request URL.
+ * NOTE: According to GREEN-API documentation, all REST endpoints (both WhatsApp and Telegram)
+ * use the `/waInstance{idInstance}/...` route prefix.
+ */
 function buildApiUrl(
   creds: GreenApiCredentials,
   method: string,
   extraPath?: string | number,
 ): string {
   const host = (creds.apiUrl || 'https://api.green-api.com').replace(/\/+$/, '')
-  const type = creds.instanceType || detectInstanceType(creds.idInstance)
   const id = cleanInstanceId(creds.idInstance)
   const token = creds.apiTokenInstance.trim()
 
-  let url = `${host}/${type}${id}/${method}/${token}`
+  let url = `${host}/waInstance${id}/${method}/${token}`
   if (extraPath !== undefined && extraPath !== '') {
     url += `/${extraPath}`
   }
@@ -60,18 +65,26 @@ async function handleResponse<T>(res: Response, methodName: string): Promise<T> 
       const data = await res.json()
       errorDetail = data.message || data.error || JSON.stringify(data)
     } catch {
-      errorDetail = await res.text().catch(() => res.statusText)
+      errorDetail = (await res.text().catch(() => '')) || res.statusText
     }
 
     if (res.status === 401 || res.status === 403) {
       throw new Error(
-        `GREEN-API Authentication Error (${res.status}): Please check your idInstance and apiTokenInstance. ${errorDetail}`,
+        `Ошибка авторизации GREEN-API (${res.status}): Проверьте правильность idInstance и apiTokenInstance. ${errorDetail}`,
+      )
+    }
+    if (res.status === 404) {
+      throw new Error(
+        `Инстанс не найден (404): Проверьте правильность idInstance и выбранного хоста API (${res.url}). ${errorDetail}`,
       )
     }
     if (res.status === 400) {
-      throw new Error(`GREEN-API Bad Request in ${methodName}: ${errorDetail}`)
+      throw new Error(`Некорректный запрос в ${methodName} (400): ${errorDetail}`)
     }
-    throw new Error(`GREEN-API ${methodName} error (${res.status}): ${errorDetail || res.statusText}`)
+    if (res.status === 429) {
+      throw new Error(`Превышен лимит запросов GREEN-API (429). Пожалуйста, подождите несколько секунд.`)
+    }
+    throw new Error(`Ошибка GREEN-API в ${methodName} (${res.status}): ${errorDetail || res.statusText}`)
   }
 
   // If 204 or empty body
@@ -102,6 +115,45 @@ export async function getStateInstance(
     },
   })
   return handleResponse<StateInstanceResponse>(res, 'getStateInstance')
+}
+
+/**
+ * Retrieves the QR code for instance authorization
+ * GET /waInstance{idInstance}/qr/{apiTokenInstance}
+ * Documentation: https://green-api.com/telegram/docs/api/account/QR/
+ */
+export async function getQrCode(
+  creds: GreenApiCredentials,
+): Promise<QrCodeResponse> {
+  const url = buildApiUrl(creds, 'qr')
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+    },
+  })
+  return handleResponse<QrCodeResponse>(res, 'qr')
+}
+
+/**
+ * Logs out the instance
+ * GET /waInstance{idInstance}/logout/{apiTokenInstance}
+ */
+export async function logoutInstance(
+  creds: GreenApiCredentials,
+): Promise<{ isLogout: boolean } | null> {
+  try {
+    const url = buildApiUrl(creds, 'logout')
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+    })
+    return await handleResponse<{ isLogout: boolean }>(res, 'logout')
+  } catch {
+    return null
+  }
 }
 
 /**

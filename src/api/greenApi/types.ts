@@ -9,7 +9,20 @@ export interface GreenApiCredentials {
 }
 
 export interface StateInstanceResponse {
-  stateInstance: 'authorized' | 'notAuthorized' | 'blocked' | 'sleepMode' | 'starting' | string
+  stateInstance:
+    | 'authorized'
+    | 'notAuthorized'
+    | 'blocked'
+    | 'sleepMode'
+    | 'starting'
+    | 'yellowCard'
+    | 'suspended'
+    | string
+}
+
+export interface QrCodeResponse {
+  type: 'qrCode' | 'already_registered' | 'error' | string
+  message: string
 }
 
 export interface SendMessagePayload {

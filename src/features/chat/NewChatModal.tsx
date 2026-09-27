@@ -25,7 +25,7 @@ export function NewChatModal({
     e.preventDefault()
     const trimmed = recipient.trim()
     if (!trimmed) {
-      setError("Please enter a phone number or chat ID")
+      setError("Пожалуйста, укажите номер телефона или Chat ID")
       return
     }
 
@@ -44,13 +44,13 @@ export function NewChatModal({
       <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>
-            New {isTelegram ? "Telegram" : "WhatsApp"} Chat
+            Новый чат в {isTelegram ? "Telegram" : "WhatsApp"}
           </h2>
           <button
             type="button"
             className={styles.modalClose}
             onClick={onClose}
-            aria-label="Close"
+            aria-label="Закрыть"
           >
             ✕
           </button>
@@ -59,7 +59,7 @@ export function NewChatModal({
         <form onSubmit={handleSubmit}>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="modalRecipient">
-              Phone number or Chat ID *
+              Номер телефона или Chat ID *
             </label>
             <input
               id="modalRecipient"
@@ -71,28 +71,28 @@ export function NewChatModal({
               }}
               placeholder={
                 isTelegram
-                  ? "+7 999 123-45-67 or 123456789@c.us"
-                  : "+7 999 123-45-67 or 79991234567"
+                  ? "+7 999 123-45-67 или 123456789@c.us"
+                  : "+7 999 123-45-67 или 79991234567"
               }
               autoFocus
               autoComplete="off"
             />
             {error && <p className={styles.fieldError}>{error}</p>}
             <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#8a8f98" }}>
-              Enter the recipient&apos;s phone number with country code (e.g. 79991234567).
+              Введите номер телефона с кодом страны (например, 79991234567).
             </p>
           </div>
 
           <div className={styles.field}>
             <label className={styles.label} htmlFor="modalName">
-              Contact Name (optional)
+              Имя контакта (необязательно)
             </label>
             <input
               id="modalName"
               className={styles.input}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Maria, Client #42"
+              placeholder="например, Мария, Клиент #42"
               autoComplete="off"
             />
           </div>
@@ -103,14 +103,14 @@ export function NewChatModal({
               className={styles.modalCancelBtn}
               onClick={onClose}
             >
-              Cancel
+              Отмена
             </button>
             <button
               type="submit"
               className={styles.modalSubmitBtn}
               disabled={!recipient.trim()}
             >
-              Create Chat
+              Создать чат
             </button>
           </div>
         </form>

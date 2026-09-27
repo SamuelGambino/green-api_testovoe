@@ -64,10 +64,10 @@ export function ChatPage({ credentials, onLogout }: ChatPageProps) {
               />
               <span>
                 {pollingStatus === "connected"
-                  ? "Live (HTTP API)"
+                  ? "В сети (HTTP API)"
                   : pollingStatus === "error"
-                  ? "Retrying connection"
-                  : "Connecting"}
+                  ? "Повтор подключения…"
+                  : "Подключение…"}
               </span>
             </div>
           </div>
@@ -77,8 +77,8 @@ export function ChatPage({ credentials, onLogout }: ChatPageProps) {
               type="button"
               className={styles.iconButton}
               onClick={() => setIsModalOpen(true)}
-              title="New Chat"
-              aria-label="New Chat"
+              title="Новый чат"
+              aria-label="Новый чат"
             >
               <PlusIcon />
             </button>
@@ -86,8 +86,8 @@ export function ChatPage({ credentials, onLogout }: ChatPageProps) {
               type="button"
               className={styles.iconButton}
               onClick={onLogout}
-              title="Change Instance / Logout"
-              aria-label="Change Instance / Logout"
+              title="Сменить инстанс / Выход"
+              aria-label="Сменить инстанс / Выход"
             >
               <LogoutIcon />
             </button>
@@ -132,7 +132,7 @@ export function ChatPage({ credentials, onLogout }: ChatPageProps) {
         ) : (
           <div className={styles.noChat}>
             <span className={styles.noChatPill}>
-              Select or create a chat to start messaging
+              Выберите или создайте чат для начала переписки
             </span>
           </div>
         )}

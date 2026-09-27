@@ -32,8 +32,8 @@ export function AuthForm({
 
   function validate(): Errors {
     const next: Errors = {}
-    if (!idInstance.trim()) next.idInstance = "Enter your idInstance"
-    if (!apiTokenInstance.trim()) next.apiTokenInstance = "Enter your apiTokenInstance"
+    if (!idInstance.trim()) next.idInstance = "Введите idInstance"
+    if (!apiTokenInstance.trim()) next.apiTokenInstance = "Введите apiTokenInstance"
     return next
   }
 
@@ -59,26 +59,26 @@ export function AuthForm({
       <div className={styles.authLogo}>
         <LockIcon width={32} height={32} />
       </div>
-      <h1 className={styles.authTitle}>GREEN-API Messenger</h1>
+      <h1 className={styles.authTitle}>GREEN-API Мессенджер</h1>
       <p className={styles.authSubtitle}>
-        Enter your GREEN-API instance credentials to start sending and receiving messages.
+        Введите учетные данные инстанса GREEN-API для отправки и получения сообщений.
       </p>
 
-      {/* Messenger Type Toggle */}
-      <div className={styles.typeSelector} role="radiogroup" aria-label="Messenger type">
+      {/* Выбор типа инстанса */}
+      <div className={styles.typeSelector} role="radiogroup" aria-label="Тип инстанса">
         <button
           type="button"
           className={`${styles.typeBtn} ${instanceType === "tgInstance" ? styles.typeBtnActive : ""}`}
           onClick={() => setInstanceType("tgInstance")}
         >
-          <span>✈️</span> Telegram (tgInstance)
+          <span>✈️</span> Telegram
         </button>
         <button
           type="button"
           className={`${styles.typeBtn} ${instanceType === "waInstance" ? styles.typeBtnActive : ""}`}
           onClick={() => setInstanceType("waInstance")}
         >
-          <span>💬</span> WhatsApp (waInstance)
+          <span>💬</span> WhatsApp
         </button>
       </div>
 
@@ -97,21 +97,21 @@ export function AuthForm({
             style={{ height: "36px", fontSize: "13px" }}
             onClick={(e) => handleSubmit(e, true)}
           >
-            Continue Anyway
+            Продолжить в любом случае
           </button>
         </div>
       )}
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor="idInstance">
-          idInstance
+          idInstance *
         </label>
         <input
           id="idInstance"
           className={`${styles.input} ${fieldErrors.idInstance ? styles.inputError : ""}`}
           value={idInstance}
           onChange={(e) => setIdInstance(e.target.value)}
-          placeholder="e.g. 1101823456"
+          placeholder="например, 1101823456"
           autoComplete="off"
         />
         {fieldErrors.idInstance && (
@@ -121,7 +121,7 @@ export function AuthForm({
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor="apiTokenInstance">
-          apiTokenInstance
+          apiTokenInstance *
         </label>
         <input
           id="apiTokenInstance"
@@ -129,7 +129,7 @@ export function AuthForm({
           className={`${styles.input} ${fieldErrors.apiTokenInstance ? styles.inputError : ""}`}
           value={apiTokenInstance}
           onChange={(e) => setApiTokenInstance(e.target.value)}
-          placeholder="e.g. d75b3a66374942c5b3c019c698abc206..."
+          placeholder="например, d75b3a66374942c5b3c019c698abc206..."
           autoComplete="off"
         />
         {fieldErrors.apiTokenInstance && (
@@ -139,18 +139,18 @@ export function AuthForm({
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor="recipient">
-          Recipient phone number or Chat ID (optional)
+          Номер получателя или Chat ID (необязательно)
         </label>
         <input
           id="recipient"
           className={styles.input}
           value={recipient}
           onChange={(e) => setRecipient(e.target.value)}
-          placeholder="e.g. 79991234567 or 79991234567@c.us"
+          placeholder="например, 79991234567 или 79991234567@c.us"
           autoComplete="off"
         />
         <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#8a8f98" }}>
-          You can also create or add chats after connecting.
+          Вы также сможете добавить или создать диалог после подключения.
         </p>
       </div>
 
@@ -168,13 +168,13 @@ export function AuthForm({
           }}
           onClick={() => setShowAdvanced((prev) => !prev)}
         >
-          {showAdvanced ? "▲ Hide Advanced Settings" : "▼ Advanced Settings (Host API URL)"}
+          {showAdvanced ? "▲ Скрыть дополнительные настройки" : "▼ Дополнительные настройки (Хост API URL)"}
         </button>
 
         {showAdvanced && (
           <div style={{ marginTop: "10px" }} className={styles.field}>
             <label className={styles.label} htmlFor="apiUrl">
-              GREEN-API Host URL
+              Хост URL GREEN-API
             </label>
             <input
               id="apiUrl"
@@ -184,7 +184,7 @@ export function AuthForm({
               placeholder="https://api.green-api.com"
             />
             <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#8a8f98" }}>
-              Default is https://api.green-api.com (or your instance host, e.g. https://7103.api.greenapi.com)
+              По умолчанию https://api.green-api.com (или хост вашего инстанса, например https://7103.api.greenapi.com)
             </p>
           </div>
         )}
@@ -192,11 +192,11 @@ export function AuthForm({
 
       <button className={styles.button} type="submit" disabled={connecting}>
         {connecting && <span className={`${styles.spinner} ${styles.spinnerSmall}`} />}
-        {connecting ? "Checking connection…" : "Connect to GREEN-API"}
+        {connecting ? "Проверка подключения…" : "Подключиться к GREEN-API"}
       </button>
 
       <p className={styles.authHint}>
-        Credentials are sent directly to GREEN-API endpoints for SendMessage &amp; ReceiveNotification.
+        Учетные данные отправляются напрямую в методы GREEN-API для отправки и получения сообщений.
       </p>
     </form>
   )

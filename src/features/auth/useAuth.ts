@@ -15,6 +15,8 @@ export function getStoredCredentials(): Credentials | null {
 
 export function useAuth() {
   const [credentials, setCredentials] = useState<Credentials | null>(() => getStoredCredentials())
+  const [pendingCredentials, setPendingCredentials] = useState<Credentials | null>(null)
+  const [isQrMode, setIsQrMode] = useState(false)
   const [connecting, setConnecting] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const [instanceStateNotice, setInstanceStateNotice] = useState<string | null>(null)
@@ -30,12 +32,26 @@ export function useAuth() {
         const stateRes = await getStateInstance(creds)
         const state = stateRes?.stateInstance
 
-        if (state !== "authorized") {
-          setInstanceStateNotice(
-            `Instance status is "${state || "unknown"}". If your instance is not yet authorized in GREEN-API (e.g. requires QR scan), you can still continue.`
-          )
+        if (state === "notAuthorized") {
+          // Instance needs QR authorization
+          setPendingCredentials(creds)
+          setIsQrMode(true)
           setConnecting(false)
           return false
+        }
+
+        if (state === "sleepMode") {
+          setInstanceStateNotice(
+            "Инстанс находится в спящем режиме. Убедитесь, что телефон включен и подключен к сети."
+          )
+        } else if (state === "blocked") {
+          setAuthError("Инстанс заблокирован в сервисе GREEN-API.")
+          setConnecting(false)
+          return false
+        } else if (state !== "authorized") {
+          setInstanceStateNotice(
+            `Статус инстанса: "${state || "неизвестно"}". Если требуется сканирование QR-кода, вы можете перейти к авторизации.`
+          )
         }
       }
 
@@ -47,14 +63,36 @@ export function useAuth() {
       }
 
       setCredentials(creds)
+      setPendingCredentials(null)
+      setIsQrMode(false)
       return true
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to connect to GREEN-API"
+      const msg = err instanceof Error ? err.message : "Не удалось подключиться к GREEN-API"
       setAuthError(msg)
       return false
     } finally {
       setConnecting(false)
     }
+  }, [])
+
+  const confirmQrAuthorized = useCallback(() => {
+    if (pendingCredentials) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(pendingCredentials))
+      } catch {
+        // ignore
+      }
+      setCredentials(pendingCredentials)
+      setPendingCredentials(null)
+      setIsQrMode(false)
+      setAuthError(null)
+    }
+  }, [pendingCredentials])
+
+  const backToEdit = useCallback(() => {
+    setIsQrMode(false)
+    setAuthError(null)
+    setInstanceStateNotice(null)
   }, [])
 
   const logout = useCallback(() => {
@@ -64,18 +102,24 @@ export function useAuth() {
       // ignore
     }
     setCredentials(null)
+    setPendingCredentials(null)
+    setIsQrMode(false)
     setAuthError(null)
     setInstanceStateNotice(null)
   }, [])
 
   return {
     credentials,
+    pendingCredentials,
+    isQrMode,
     connecting,
     authError,
     setAuthError,
     instanceStateNotice,
     setInstanceStateNotice,
     login,
+    confirmQrAuthorized,
+    backToEdit,
     logout,
   }
 }

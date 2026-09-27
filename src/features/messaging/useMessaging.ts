@@ -60,7 +60,7 @@ export function useMessaging({
       }))
     } catch (err: unknown) {
       const errorMsg =
-        err instanceof Error ? err.message : "Failed to send message via GREEN-API"
+        err instanceof Error ? err.message : "Не удалось отправить сообщение через GREEN-API"
       setSendError(errorMsg)
       updateChat(chatId, (chat) => ({
         ...chat,
@@ -120,7 +120,7 @@ export function useMessaging({
           try {
             await deleteNotification(credentials, receiptId)
           } catch (delErr) {
-            console.warn("Failed to delete notification:", delErr)
+            console.warn("Ошибка при удалении уведомления:", delErr)
           }
 
           // Immediately poll again to drain pending notifications
@@ -135,7 +135,7 @@ export function useMessaging({
           timer = setTimeout(pollNotifications, 1500)
         }
       } catch (err) {
-        console.warn("Error polling GREEN-API notification:", err)
+        console.warn("Ошибка получения уведомления GREEN-API:", err)
         setPollingStatus("error")
         if (!cancelled) {
           timer = setTimeout(pollNotifications, 4000)

@@ -16,7 +16,8 @@ export function ChatHeader({ chat, typing = false, onBack }: ChatHeaderProps) {
         type="button"
         className={styles.backButton}
         onClick={onBack}
-        aria-label="Back to chats"
+        aria-label="Назад к списку чатов"
+        title="Назад к списку чатов"
       >
         <BackIcon />
       </button>
@@ -26,7 +27,7 @@ export function ChatHeader({ chat, typing = false, onBack }: ChatHeaderProps) {
         <p className={styles.chatHeaderStatus}>
           {typing ? (
             <span className={styles.typingDots}>
-              typing<span>.</span>
+              печатает<span>.</span>
               <span>.</span>
               <span>.</span>
             </span>

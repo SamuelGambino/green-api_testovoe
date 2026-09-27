@@ -19,21 +19,21 @@ export function ChatList({
   if (chats.length === 0) {
     return (
       <div className={styles.emptyChatsNotice}>
-        <p>No chats yet</p>
+        <p>Нет активных чатов</p>
         <button
           type="button"
           className={styles.newChatNoticeBtn}
           onClick={onNewChat}
         >
           <PlusIcon />
-          <span>Start a new chat</span>
+          <span>Начать новый чат</span>
         </button>
       </div>
     )
   }
 
   return (
-    <ul className={styles.chatList} aria-label="Chats">
+    <ul className={styles.chatList} aria-label="Чаты">
       {chats.map((chat) => (
         <ChatListItem
           key={chat.id}

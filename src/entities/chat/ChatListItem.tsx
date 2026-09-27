@@ -12,15 +12,15 @@ interface ChatListItemProps {
 function previewFor(chat: Chat): string {
   switch (chat.state) {
     case "loading":
-      return "Loading messages…"
+      return "Загрузка сообщений…"
     case "error":
-      return "Couldn't load messages"
+      return "Не удалось загрузить сообщения"
     case "empty":
-      return "No messages yet"
+      return "Нет сообщений"
     default: {
       const last = chat.messages[chat.messages.length - 1]
-      if (!last) return "No messages yet"
-      return (last.direction === "outgoing" ? "You: " : "") + last.text
+      if (!last) return "Нет сообщений"
+      return (last.direction === "outgoing" ? "Вы: " : "") + last.text
     }
   }
 }

@@ -20,7 +20,7 @@ export function MessageList({ chat, onRetry }: MessageListProps) {
     return (
       <div className={styles.centerState}>
         <span className={styles.spinner} />
-        <p className={styles.stateText}>Loading messages…</p>
+        <p className={styles.stateText}>Загрузка сообщений…</p>
       </div>
     )
   }
@@ -29,12 +29,12 @@ export function MessageList({ chat, onRetry }: MessageListProps) {
     return (
       <div className={styles.centerState}>
         <AlertIcon width={40} height={40} className={styles.errorIcon} />
-        <p className={styles.stateTitle}>Something went wrong</p>
+        <p className={styles.stateTitle}>Не удалось загрузить сообщения</p>
         <p className={styles.stateText}>
-          We couldn&apos;t load this conversation. Please try again.
+          Произошла ошибка при загрузке переписки. Пожалуйста, попробуйте снова.
         </p>
         <button type="button" className={styles.retryButton} onClick={onRetry}>
-          Retry
+          Повторить
         </button>
       </div>
     )
@@ -44,9 +44,9 @@ export function MessageList({ chat, onRetry }: MessageListProps) {
     return (
       <div className={styles.centerState}>
         <InboxIcon className={styles.stateIcon} />
-        <p className={styles.stateTitle}>No messages yet</p>
+        <p className={styles.stateTitle}>Нет сообщений</p>
         <p className={styles.stateText}>
-          Send a message below to start the conversation.
+          Отправьте первое сообщение ниже, чтобы начать диалог.
         </p>
       </div>
     )

@@ -41,7 +41,7 @@ export function MessageInput({ disabled, onSend }: MessageInputProps) {
       <textarea
         ref={textareaRef}
         className={styles.composerInput}
-        placeholder="Write a message…"
+        placeholder="Напишите сообщение…"
         rows={1}
         value={text}
         disabled={disabled}
@@ -50,14 +50,15 @@ export function MessageInput({ disabled, onSend }: MessageInputProps) {
           autoGrow()
         }}
         onKeyDown={handleKeyDown}
-        aria-label="Message text"
+        aria-label="Текст сообщения"
       />
       <button
         type="button"
         className={styles.sendButton}
         onClick={submit}
         disabled={disabled || text.trim().length === 0}
-        aria-label="Send message"
+        aria-label="Отправить сообщение"
+        title="Отправить (Enter)"
       >
         <SendIcon width={20} height={20} />
       </button>

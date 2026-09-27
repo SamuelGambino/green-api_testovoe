@@ -12,16 +12,16 @@ function StatusTick({ status }: { status?: Message["status"] }) {
     return (
       <span
         className={`${styles.spinner} ${styles.spinnerSmall} ${styles.tickSending}`}
-        aria-label="Sending"
+        aria-label="Отправляется"
       />
     )
   }
   if (status === "error") {
-    return <span className={styles.metaError}>failed</span>
+    return <span className={styles.metaError}>ошибка</span>
   }
   if (status === "sent") {
     return (
-      <span className={styles.tick} aria-label="Sent">
+      <span className={styles.tick} aria-label="Доставлено">
         <DoubleCheckIcon />
       </span>
     )
