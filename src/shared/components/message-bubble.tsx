@@ -1,6 +1,6 @@
 import type { Message } from "@/lib/types"
 import { formatTime } from "@/lib/format"
-import { CheckIcon, DoubleCheckIcon } from "./icons"
+import { DoubleCheckIcon } from "./icons"
 import styles from "./messenger.module.css"
 
 interface MessageBubbleProps {

@@ -6,7 +6,6 @@ import { mockChats, mockReplies } from "@/lib/mock-data"
 import { AuthScreen } from "./auth-screen"
 import { ChatList } from "./chat-list"
 import { ChatWindow } from "./chat-window"
-import { ChatIcon } from "./icons"
 import styles from "./messenger.module.css"
 
 let idCounter = 0
