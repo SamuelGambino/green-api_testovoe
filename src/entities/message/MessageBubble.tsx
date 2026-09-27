@@ -1,7 +1,7 @@
-import type { Message } from "@/lib/types"
-import { formatTime } from "@/lib/format"
-import { DoubleCheckIcon } from "./icons"
-import styles from "./messenger.module.css"
+import type { Message } from "./types"
+import { formatTime } from "@/shared/lib/format"
+import { DoubleCheckIcon } from "@/shared/components/icons"
+import styles from "@/shared/components/messenger.module.css"
 
 interface MessageBubbleProps {
   message: Message

@@ -1,15 +1,15 @@
-import type { Chat } from "@/lib/types"
-import { Avatar } from "./avatar"
-import { BackIcon } from "./icons"
-import styles from "./messenger.module.css"
+import type { Chat } from "./types"
+import { Avatar } from "@/shared/components/avatar"
+import { BackIcon } from "@/shared/components/icons"
+import styles from "@/shared/components/messenger.module.css"
 
 interface ChatHeaderProps {
   chat: Chat
-  typing: boolean
+  typing?: boolean
   onBack: () => void
 }
 
-export function ChatHeader({ chat, typing, onBack }: ChatHeaderProps) {
+export function ChatHeader({ chat, typing = false, onBack }: ChatHeaderProps) {
   return (
     <header className={styles.chatHeader}>
       <button

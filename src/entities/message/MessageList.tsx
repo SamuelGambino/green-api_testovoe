@@ -1,10 +1,8 @@
-"use client"
-
 import { useEffect, useRef } from "react"
-import type { Chat } from "@/lib/types"
-import { MessageBubble } from "./message-bubble"
-import { AlertIcon, InboxIcon } from "./icons"
-import styles from "./messenger.module.css"
+import type { Chat } from "@/entities/chat/types"
+import { MessageBubble } from "./MessageBubble"
+import { AlertIcon, InboxIcon } from "@/shared/components/icons"
+import styles from "@/shared/components/messenger.module.css"
 
 interface MessageListProps {
   chat: Chat
