@@ -2,15 +2,120 @@ import type {
   ChatHistoryMessage,
   DeleteNotificationResponse,
   GreenApiCredentials,
+  InstanceSettings,
   InstanceType,
   QrCodeResponse,
   ReceiveNotificationResponse,
+  SendAuthorizationPasswordResponse,
   SendMessageResponse,
+  SetSettingsResponse,
   StateInstanceResponse,
 } from './types'
 
 export function cleanInstanceId(id: string): string {
   return id.replace(/^(waInstance|tgInstance)/i, '').trim()
+}
+
+export function cleanChatId(id: string): string {
+  return id.replace(/@(c|g)\.us$/i, '').replace(/\D/g, '')
+}
+
+/**
+ * Checks if two chat identifiers refer to the same conversation
+ */
+export function isSameChatId(chat1: string, chat2: string): boolean {
+  if (!chat1 || !chat2) return false
+  const r1 = chat1.trim().toLowerCase()
+  const r2 = chat2.trim().toLowerCase()
+  if (r1 === r2) return true
+  if (r1.replace(/@(c|g)\.us$/, '') === r2.replace(/@(c|g)\.us$/, '')) return true
+
+  // Compare normalized digits for phone numbers / WhatsApp / Telegram IDs
+  const d1 = cleanChatId(r1)
+  const d2 = cleanChatId(r2)
+  if (d1 && d2 && d1 === d2) return true
+  if (d1.length >= 7 && d2.length >= 7) {
+    if (d1.length === 11 && d2.length === 11 && d1.slice(1) === d2.slice(1)) return true
+    if (d1.slice(-10) === d2.slice(-10)) return true
+  }
+
+  return false
+}
+
+interface RawMessageData {
+  textMessageData?: { textMessage?: string }
+  extendedTextMessageData?: { textMessage?: string }
+  quotedMessage?: { textMessage?: string }
+  fileMessageData?: { caption?: string; fileName?: string }
+  imageMessageData?: { caption?: string }
+  videoMessageData?: { caption?: string }
+  documentMessageData?: { fileName?: string }
+  contactMessageData?: { displayName?: string }
+  typeMessage?: string
+  audioMessageData?: unknown
+  locationMessageData?: unknown
+  stickerMessageData?: unknown
+}
+
+/**
+ * Extracts plain text or a user-friendly label from various webhook messageData structures
+ */
+export function extractMessageText(messageData: unknown): string {
+  if (!messageData) return ''
+  if (typeof messageData === 'string') return messageData
+
+  const data = messageData as RawMessageData
+
+  if (data.textMessageData?.textMessage) {
+    return data.textMessageData.textMessage
+  }
+  if (data.extendedTextMessageData?.textMessage) {
+    return data.extendedTextMessageData.textMessage
+  }
+  if (data.quotedMessage?.textMessage) {
+    return data.quotedMessage.textMessage
+  }
+  if (data.fileMessageData?.caption) {
+    return data.fileMessageData.caption
+  }
+  if (data.fileMessageData?.fileName) {
+    return `📎 [Файл: ${data.fileMessageData.fileName}]`
+  }
+  if (data.imageMessageData?.caption) {
+    return data.imageMessageData.caption
+  }
+  if (data.typeMessage === 'imageMessage') {
+    return '📷 [Изображение]'
+  }
+  if (data.videoMessageData?.caption) {
+    return data.videoMessageData.caption
+  }
+  if (data.typeMessage === 'videoMessage') {
+    return '🎥 [Видео]'
+  }
+  if (data.documentMessageData?.fileName) {
+    return `📄 [Документ: ${data.documentMessageData.fileName}]`
+  }
+  if (data.typeMessage === 'documentMessage') {
+    return '📄 [Документ]'
+  }
+  if (data.audioMessageData || data.typeMessage === 'audioMessage') {
+    return '🎵 [Аудиосообщение]'
+  }
+  if (data.typeMessage === 'voiceMessage') {
+    return '🎤 [Голосовое сообщение]'
+  }
+  if (data.locationMessageData) {
+    return '📍 [Геолокация]'
+  }
+  if (data.contactMessageData?.displayName) {
+    return `👤 [Контакт: ${data.contactMessageData.displayName}]`
+  }
+  if (data.stickerMessageData || data.typeMessage === 'stickerMessage') {
+    return '✨ [Стикер]'
+  }
+
+  return ''
 }
 
 export function detectInstanceType(id: string, preferred?: InstanceType): InstanceType {
@@ -133,6 +238,65 @@ export async function getQrCode(
     },
   })
   return handleResponse<QrCodeResponse>(res, 'qr')
+}
+
+/**
+ * Sends a 2FA / Cloud password for Telegram account authorization
+ * POST /waInstance{idInstance}/sendAuthorizationPassword/{apiTokenInstance}
+ */
+export async function sendAuthorizationPassword(
+  creds: GreenApiCredentials,
+  password: string,
+): Promise<SendAuthorizationPasswordResponse> {
+  const url = buildApiUrl(creds, 'sendAuthorizationPassword')
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      password,
+    }),
+  })
+  return handleResponse<SendAuthorizationPasswordResponse>(res, 'sendAuthorizationPassword')
+}
+
+/**
+ * Retrieves the current instance settings
+ * GET /waInstance{idInstance}/getSettings/{apiTokenInstance}
+ */
+export async function getSettings(
+  creds: GreenApiCredentials,
+): Promise<InstanceSettings> {
+  const url = buildApiUrl(creds, 'getSettings')
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+    },
+  })
+  return handleResponse<InstanceSettings>(res, 'getSettings')
+}
+
+/**
+ * Updates instance settings (e.g. enabling incomingWebhook and configuring webhookUrl)
+ * POST /waInstance{idInstance}/setSettings/{apiTokenInstance}
+ */
+export async function setSettings(
+  creds: GreenApiCredentials,
+  settings: Partial<InstanceSettings>,
+): Promise<SetSettingsResponse> {
+  const url = buildApiUrl(creds, 'setSettings')
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(settings),
+  })
+  return handleResponse<SetSettingsResponse>(res, 'setSettings')
 }
 
 /**

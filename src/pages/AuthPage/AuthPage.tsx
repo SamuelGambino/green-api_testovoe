@@ -1,12 +1,16 @@
 import type { Credentials } from "@/shared/lib/types"
-import { AuthForm, QrCodeView, getStoredCredentials } from "@/features/auth"
+import type { AuthStage } from "@/features/auth"
+import { AuthForm, PasswordView, QrCodeView, getStoredCredentials } from "@/features/auth"
 import styles from "@/shared/components/messenger.module.css"
 
 interface AuthPageProps {
+  authStage?: AuthStage
   isQrMode?: boolean
   pendingCredentials?: Credentials | null
   onConnect: (credentials: Credentials, forceContinue?: boolean) => Promise<boolean | void>
   onAuthorized?: () => void
+  onRequirePassword?: () => void
+  onBackToQr?: () => void
   onBack?: () => void
   connecting: boolean
   error: string | null
@@ -14,10 +18,13 @@ interface AuthPageProps {
 }
 
 export function AuthPage({
+  authStage = "form",
   isQrMode,
   pendingCredentials,
   onConnect,
   onAuthorized,
+  onRequirePassword,
+  onBackToQr,
   onBack,
   connecting,
   error,
@@ -25,12 +32,21 @@ export function AuthPage({
 }: AuthPageProps) {
   const initialCreds = pendingCredentials || getStoredCredentials()
 
+  const stage = authStage || (isQrMode ? "qr" : "form")
+
   return (
     <div className={styles.authScreen}>
-      {isQrMode && pendingCredentials && onAuthorized && onBack ? (
+      {stage === "password" && pendingCredentials && onAuthorized ? (
+        <PasswordView
+          credentials={pendingCredentials}
+          onAuthorized={onAuthorized}
+          onBackToQr={onBackToQr || onBack || (() => {})}
+        />
+      ) : stage === "qr" && pendingCredentials && onAuthorized && onBack ? (
         <QrCodeView
           credentials={pendingCredentials}
           onAuthorized={onAuthorized}
+          onRequirePassword={onRequirePassword}
           onBack={onBack}
         />
       ) : (

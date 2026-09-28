@@ -6,12 +6,14 @@ export default function App() {
   const {
     credentials,
     pendingCredentials,
-    isQrMode,
+    authStage,
     connecting,
     authError,
     instanceStateNotice,
     login,
-    confirmQrAuthorized,
+    confirmAuthorized,
+    goToPassword,
+    backToQr,
     backToEdit,
     logout,
   } = useAuth()
@@ -19,10 +21,12 @@ export default function App() {
   if (!credentials) {
     return (
       <AuthPage
-        isQrMode={isQrMode}
+        authStage={authStage}
         pendingCredentials={pendingCredentials}
         onConnect={login}
-        onAuthorized={confirmQrAuthorized}
+        onAuthorized={confirmAuthorized}
+        onRequirePassword={goToPassword}
+        onBackToQr={backToQr}
         onBack={backToEdit}
         connecting={connecting}
         error={authError}

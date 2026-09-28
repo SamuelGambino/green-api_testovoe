@@ -4,7 +4,7 @@ import { ChatHeader, ChatList } from "@/entities/chat"
 import { MessageList } from "@/entities/message"
 import { NewChatModal, useChat } from "@/features/chat"
 import { MessageInput, useMessaging } from "@/features/messaging"
-import { AlertIcon, LogoutIcon, PlusIcon } from "@/shared/components/icons"
+import { AlertIcon, LogoutIcon, PlusIcon, RefreshIcon } from "@/shared/components/icons"
 import styles from "@/shared/components/messenger.module.css"
 
 interface ChatPageProps {
@@ -26,7 +26,16 @@ export function ChatPage({ credentials, onLogout }: ChatPageProps) {
     retryHistory,
   } = useChat(credentials)
 
-  const { sendError, setSendError, pollingStatus, sendMessage } = useMessaging({
+  const {
+    sendError,
+    setSendError,
+    pollingStatus,
+    webhookConfigNotice,
+    setWebhookConfigNotice,
+    isConfiguringWebhooks,
+    syncWebhooks,
+    sendMessage,
+  } = useMessaging({
     credentials,
     activeChat,
     updateChat,
@@ -76,6 +85,16 @@ export function ChatPage({ credentials, onLogout }: ChatPageProps) {
             <button
               type="button"
               className={styles.iconButton}
+              onClick={syncWebhooks}
+              disabled={isConfiguringWebhooks}
+              title="Проверить и настроить вебхуки (HTTP API)"
+              aria-label="Проверить и настроить вебхуки"
+            >
+              <RefreshIcon />
+            </button>
+            <button
+              type="button"
+              className={styles.iconButton}
               onClick={() => setIsModalOpen(true)}
               title="Новый чат"
               aria-label="Новый чат"
@@ -105,6 +124,39 @@ export function ChatPage({ credentials, onLogout }: ChatPageProps) {
       <main
         className={`${styles.chatArea} ${activeChat ? "" : styles.chatAreaHidden}`}
       >
+        {webhookConfigNotice && (
+          <div
+            style={{
+              padding: "8px 16px",
+              background: "#eff6ff",
+              borderBottom: "1px solid #bfdbfe",
+              color: "#1e40af",
+              fontSize: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "8px",
+            }}
+          >
+            <span>{webhookConfigNotice}</span>
+            <button
+              type="button"
+              onClick={() => setWebhookConfigNotice(null)}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "#6b7280",
+                fontSize: "14px",
+                padding: "0 4px",
+              }}
+              aria-label="Закрыть уведомление"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {activeChat ? (
           <>
             <ChatHeader

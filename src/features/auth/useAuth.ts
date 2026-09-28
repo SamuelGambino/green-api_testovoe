@@ -13,10 +13,12 @@ export function getStoredCredentials(): Credentials | null {
   }
 }
 
+export type AuthStage = "form" | "qr" | "password"
+
 export function useAuth() {
   const [credentials, setCredentials] = useState<Credentials | null>(() => getStoredCredentials())
   const [pendingCredentials, setPendingCredentials] = useState<Credentials | null>(null)
-  const [isQrMode, setIsQrMode] = useState(false)
+  const [authStage, setAuthStage] = useState<AuthStage>("form")
   const [connecting, setConnecting] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const [instanceStateNotice, setInstanceStateNotice] = useState<string | null>(null)
@@ -35,7 +37,15 @@ export function useAuth() {
         if (state === "notAuthorized") {
           // Instance needs QR authorization
           setPendingCredentials(creds)
-          setIsQrMode(true)
+          setAuthStage("qr")
+          setConnecting(false)
+          return false
+        }
+
+        if (state === "pendingPassword") {
+          // Instance needs 2FA Cloud Password
+          setPendingCredentials(creds)
+          setAuthStage("password")
           setConnecting(false)
           return false
         }
@@ -64,7 +74,7 @@ export function useAuth() {
 
       setCredentials(creds)
       setPendingCredentials(null)
-      setIsQrMode(false)
+      setAuthStage("form")
       return true
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Не удалось подключиться к GREEN-API"
@@ -75,7 +85,7 @@ export function useAuth() {
     }
   }, [])
 
-  const confirmQrAuthorized = useCallback(() => {
+  const confirmAuthorized = useCallback(() => {
     if (pendingCredentials) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(pendingCredentials))
@@ -84,13 +94,23 @@ export function useAuth() {
       }
       setCredentials(pendingCredentials)
       setPendingCredentials(null)
-      setIsQrMode(false)
+      setAuthStage("form")
       setAuthError(null)
     }
   }, [pendingCredentials])
 
+  const goToPassword = useCallback(() => {
+    setAuthStage("password")
+    setAuthError(null)
+  }, [])
+
+  const backToQr = useCallback(() => {
+    setAuthStage("qr")
+    setAuthError(null)
+  }, [])
+
   const backToEdit = useCallback(() => {
-    setIsQrMode(false)
+    setAuthStage("form")
     setAuthError(null)
     setInstanceStateNotice(null)
   }, [])
@@ -103,7 +123,7 @@ export function useAuth() {
     }
     setCredentials(null)
     setPendingCredentials(null)
-    setIsQrMode(false)
+    setAuthStage("form")
     setAuthError(null)
     setInstanceStateNotice(null)
   }, [])
@@ -111,14 +131,19 @@ export function useAuth() {
   return {
     credentials,
     pendingCredentials,
-    isQrMode,
+    authStage,
+    isQrMode: authStage === "qr",
+    isPasswordMode: authStage === "password",
     connecting,
     authError,
     setAuthError,
     instanceStateNotice,
     setInstanceStateNotice,
     login,
-    confirmQrAuthorized,
+    confirmAuthorized,
+    confirmQrAuthorized: confirmAuthorized,
+    goToPassword,
+    backToQr,
     backToEdit,
     logout,
   }

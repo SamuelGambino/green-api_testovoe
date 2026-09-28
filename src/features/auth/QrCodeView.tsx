@@ -6,10 +6,11 @@ import styles from "@/shared/components/messenger.module.css"
 interface QrCodeViewProps {
   credentials: Credentials
   onAuthorized: () => void
+  onRequirePassword?: () => void
   onBack: () => void
 }
 
-export function QrCodeView({ credentials, onAuthorized, onBack }: QrCodeViewProps) {
+export function QrCodeView({ credentials, onAuthorized, onRequirePassword, onBack }: QrCodeViewProps) {
   const [qrBase64, setQrBase64] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -26,11 +27,18 @@ export function QrCodeView({ credentials, onAuthorized, onBack }: QrCodeViewProp
     setIsRefreshing(true)
 
     try {
-      // First check if already authorized
+      // First check if already authorized or pending password
       const stateRes = await getStateInstance(credentials)
       if (stateRes?.stateInstance === "authorized") {
         onAuthorized()
         return
+      }
+
+      if (stateRes?.stateInstance === "pendingPassword") {
+        if (onRequirePassword) {
+          onRequirePassword()
+          return
+        }
       }
 
       const qrRes = await getQrCode(credentials)
@@ -61,7 +69,7 @@ export function QrCodeView({ credentials, onAuthorized, onBack }: QrCodeViewProp
       setIsRefreshing(false)
       setCountdown(5)
     }
-  }, [credentials, onAuthorized])
+  }, [credentials, onAuthorized, onRequirePassword])
 
   // 5-second polling interval conforming to documentation recommendations
   useEffect(() => {
@@ -187,6 +195,31 @@ export function QrCodeView({ credentials, onAuthorized, onBack }: QrCodeViewProp
           {isRefreshing && <span className={`${styles.spinner} ${styles.spinnerSmall}`} />}
           {isRefreshing ? "Проверка статуса…" : "Обновить QR-код"}
         </button>
+
+        {isTelegram && onRequirePassword && (
+          <button
+            type="button"
+            onClick={onRequirePassword}
+            style={{
+              background: "#f0f7ff",
+              border: "1px solid #bfdbfe",
+              borderRadius: "10px",
+              color: "#1d4ed8",
+              height: "40px",
+              fontSize: "13px",
+              cursor: "pointer",
+              fontWeight: 500,
+              transition: "all 0.15s ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+            }}
+          >
+            <span>🔒</span>
+            <span>Ввести 2FA пароль Telegram</span>
+          </button>
+        )}
 
         <button
           type="button"

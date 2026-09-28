@@ -12,12 +12,46 @@ export interface StateInstanceResponse {
   stateInstance:
     | 'authorized'
     | 'notAuthorized'
+    | 'pendingPassword'
     | 'blocked'
     | 'sleepMode'
     | 'starting'
     | 'yellowCard'
     | 'suspended'
     | string
+}
+
+export interface SendAuthorizationPasswordResponse {
+  result?: boolean
+  message?: string
+  error?: string
+}
+
+export interface InstanceSettings {
+  wid?: string
+  countryInstance?: string
+  typeAccount?: string
+  typeInstance?: string
+  webhookUrl?: string
+  webhookUrlToken?: string
+  delaySendMessagesMilliseconds?: number
+  markIncomingMessagesReaded?: string
+  markIncomingMessagesReadedOnReply?: string
+  sharedSession?: string
+  outgoingWebhook?: string
+  outgoingMessageWebhook?: string
+  outgoingAPIMessageWebhook?: string
+  incomingWebhook?: string
+  deviceInfo?: string
+  stateInstanceWebhook?: string
+  incomingBlockWebhook?: string
+  incomingCallWebhook?: string
+}
+
+export interface SetSettingsResponse {
+  saveSettings?: boolean
+  error?: string
+  message?: string
 }
 
 export interface QrCodeResponse {

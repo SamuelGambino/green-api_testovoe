@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import type { Credentials } from "@/shared/lib/types"
 import type { Chat, Message } from "@/entities/chat/types"
-import { formatChatId, getChatHistory } from "@/api/greenApi"
+import { formatChatId, getChatHistory, isSameChatId } from "@/api/greenApi"
 
 const STORAGE_CHATS_PREFIX = "green_api_chats_"
 
@@ -92,7 +92,7 @@ export function useChat(credentials: Credentials | null) {
       if (!credentials) return
       const existing = chats.find(
         (c) =>
-          c.recipient.toLowerCase() === formattedRecipient.toLowerCase() ||
+          isSameChatId(c.recipient, formattedRecipient) ||
           c.id === `chat-${formattedRecipient}`
       )
 
@@ -148,7 +148,7 @@ export function useChat(credentials: Credentials | null) {
       setChats((prev) => {
         const matchIndex = prev.findIndex(
           (c) =>
-            c.recipient.toLowerCase() === incomingChatId.toLowerCase() ||
+            isSameChatId(c.recipient, incomingChatId) ||
             c.id === `chat-${incomingChatId}`
         )
 

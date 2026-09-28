@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { Credentials } from "@/shared/lib/types"
 import type { Chat, Message } from "@/entities/chat/types"
 import {
   deleteNotification,
+  extractMessageText,
+  getSettings,
   receiveNotification,
   sendMessage as sendGreenApiMessage,
+  setSettings,
 } from "@/api/greenApi"
 
 interface UseMessagingProps {
@@ -24,6 +27,56 @@ export function useMessaging({
   const [pollingStatus, setPollingStatus] = useState<"connected" | "connecting" | "error">(
     "connected"
   )
+  const [webhookConfigNotice, setWebhookConfigNotice] = useState<string | null>(null)
+  const [isConfiguringWebhooks, setIsConfiguringWebhooks] = useState(false)
+
+  // Configure instance settings for HTTP API receiveNotification
+  const syncWebhooks = useCallback(async () => {
+    if (!credentials) return
+    setIsConfiguringWebhooks(true)
+    try {
+      const settings = await getSettings(credentials)
+
+      const needsUpdate =
+        settings.incomingWebhook !== "yes" ||
+        (settings.webhookUrl && settings.webhookUrl.trim() !== "")
+
+      if (needsUpdate) {
+        setWebhookConfigNotice("Настройка инстанса для приема входящих сообщений…")
+        await setSettings(credentials, {
+          incomingWebhook: "yes",
+          webhookUrl: "", // Must be empty for HTTP API receiveNotification
+          outgoingMessageWebhook: "yes",
+          stateInstanceWebhook: "yes",
+        })
+        setWebhookConfigNotice("Входящие сообщения успешно включены (incomingWebhook: yes, webhookUrl: очищен).")
+      } else {
+        setWebhookConfigNotice(null)
+      }
+    } catch (err) {
+      console.warn("Не удалось проверить/обновить настройки вебхуков:", err)
+      setWebhookConfigNotice(
+        "Не удалось автоматически проверить настройки вебхуков инстанса. Проверьте в консоли GREEN-API, что incomingWebhook включен."
+      )
+    } finally {
+      setIsConfiguringWebhooks(false)
+    }
+  }, [credentials])
+
+  // Run webhook configuration once on connect
+  useEffect(() => {
+    if (!credentials) return
+    let cancelled = false
+    const timer = setTimeout(() => {
+      if (!cancelled) {
+        syncWebhooks()
+      }
+    }, 0)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [credentials, syncWebhooks])
 
   // Send message
   async function sendMessage(text: string) {
@@ -91,28 +144,39 @@ export function useMessaging({
         if (notification && notification.receiptId) {
           const { receiptId, body } = notification
 
-          if (body?.typeWebhook === "incomingMessageReceived") {
+          // Handle incoming message or phone-sent message
+          if (
+            body?.typeWebhook === "incomingMessageReceived" ||
+            body?.typeWebhook === "outgoingMessageReceived"
+          ) {
             const senderData = body.senderData
-            const messageData = body.messageData
-            const text =
-              messageData?.textMessageData?.textMessage ||
-              messageData?.extendedTextMessageData?.textMessage
+            const text = extractMessageText(body.messageData)
 
-            if (text && senderData?.chatId) {
-              const incomingChatId = senderData.chatId
+            const rawBody = body as unknown as { chatId?: string }
+            const incomingChatId =
+              senderData?.chatId ||
+              rawBody.chatId ||
+              senderData?.sender ||
+              ""
+
+            if (text && incomingChatId) {
               const senderDisplayName =
-                senderData.chatName ||
-                senderData.senderName ||
-                incomingChatId.replace(/@c\.us$/, "")
+                senderData?.chatName ||
+                senderData?.senderName ||
+                senderData?.senderContactName ||
+                incomingChatId.replace(/@(c|g)\.us$/, "")
 
-              const incomingMsg: Message = {
+              const isOutgoing = body.typeWebhook === "outgoingMessageReceived"
+
+              const parsedMsg: Message = {
                 id: body.idMessage || `msg-${Date.now()}-${Math.random()}`,
                 text,
                 timestamp: body.timestamp ? body.timestamp * 1000 : Date.now(),
-                direction: "incoming",
+                direction: isOutgoing ? "outgoing" : "incoming",
+                status: isOutgoing ? "sent" : undefined,
               }
 
-              onIncomingMessage(incomingChatId, senderDisplayName, incomingMsg)
+              onIncomingMessage(incomingChatId, senderDisplayName, parsedMsg)
             }
           }
 
@@ -159,6 +223,10 @@ export function useMessaging({
     sendError,
     setSendError,
     pollingStatus,
+    webhookConfigNotice,
+    setWebhookConfigNotice,
+    isConfiguringWebhooks,
+    syncWebhooks,
     sendMessage,
   }
 }
