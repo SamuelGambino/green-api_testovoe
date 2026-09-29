@@ -1,9 +1,0 @@
-{
-  "name": "Green API Messenger",
-  "description": "A web messenger client for GREEN-API WhatsApp integration, featuring chat list, message views, typing status, and auth.",
-  "prompt": "Green API messenger interface for sending and receiving messages via GREEN-API",
-  "permissions": [],
-  "capabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}

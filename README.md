@@ -1,75 +1,20 @@
-# React + TypeScript + Vite
+# Green-API messenger
+Готовое тестовое задание на позиция React разработчика, сделанное Даниилом Громыко :)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Архитектура
 
-Currently, two official plugins are available:
+Проект спроектирован по модульным принципам с четким разделением ответственности, что обеспечивает слабую связанность и высокую масштабируемость
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### Ключевые архитектурные решения
 
-## React Compiler
+#### Предсказуемая авторизация
+За логику входа отвечает хук useAuth. Он строго переключает состояния: form → qr (для сканирования) → password (при 2FA) → ready. Интерфейс точно знает, на каком этапе находится пользователь.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+#### Безопасная очередь событий
+Хук useMessaging забирает входящие события по прозрачной схеме: получили (receiveNotification) ➔ обработали ➔ подтвердили (deleteNotification). Это избавляет от необходимости открывать публичный порт наружу на клиенте и гарантирует доставку сообщений без потерь и строго по порядку.
 
-## Expanding the ESLint configuration
+#### Отклики без задержек
+Отправленное сообщение мгновенно появляется в чате со статусом sending. После ответа сервера и получения idMessage статус меняется на sent (или error, если подвел интернет), благодаря чему приложение ощущается быстрым.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+#### Гибкое сопоставление диалогов
+Функция isSameChatId приведёт любой контакт к единому виду — она сглаживает разницу между +7 / 8, системными суффиксами (@c.us, @g.us) и пробелами. Входящее сообщение всегда попадет в правильный чат, независимо от того, как пользователь ввел номер.
